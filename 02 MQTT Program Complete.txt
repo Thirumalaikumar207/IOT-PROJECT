@@ -1,0 +1,61 @@
+#include "Rajan_Robotics.h"
+
+const char* ssid = "Balaji";     // Enter SSID(Wifi name) here
+const char* password = "balaji1990";  // Enter Password here
+
+const char* mqtt_server = "broker.emqx.io"; //broker link
+const int mqtt_port =1883;//broker port
+
+
+void setup() 
+{
+Serial.begin(9600);
+RR_netconnect(ssid,password);
+
+client.setServer(mqtt_server, mqtt_port);
+client.setCallback(callback);
+}
+
+void loop() 
+{
+if (!client.connected()) 
+{
+  reconnect();
+//client.subscribe("Rajan/home/Door");//Subscribe topic
+}  
+  client.loop();
+  int rr;
+  rr=analogRead(A0);
+    publishMessage("Rajan/home/Door",String(rr),true);
+//  publishMessage(   Topic,         Value,     true);
+
+}//end of void loop
+
+void callback(char* topic, byte* payload, unsigned int length) 
+{
+  String incommingMessage = "";
+  for (int i = 0; i < length; i++) 
+      {
+      incommingMessage+=(char)payload[i];
+      }     
+  Serial.println("Message arrived ["+String(topic)+"]"+incommingMessage); 
+   
+//---- check the incomming message
+    if( strcmp(topic,"Rajan/home/Door") == 0)
+    {  
+      //for student value update    
+     int s=(incommingMessage).toInt();
+     if(s<=25)
+     {
+      Serial.println("Home Door closed");
+      //digitalWrite(pin,HIGH);
+     }      
+    else 
+    {
+      Serial.println("Home doors OPEN");      
+      //digitalWrite(pin,LOW);
+    }
+    ////for student value update
+    }    
+delay(1000);
+}
